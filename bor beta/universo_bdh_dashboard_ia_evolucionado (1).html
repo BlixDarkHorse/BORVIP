@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RENEGADE ROOM BY UNIVERSO BDH</title>
+    <meta name="description" content="RENDERIZADOR SQR/ROUSE/VTHA EJECUTADO POR TARÁNTULA LENGUAJE/PYTHON" />
+    
+    <style>
+        :root {
+            /* Tema por defecto (Negro/Cyan original modificado) */
+            --bdh-bg: #0a0a0c;
+            --bdh-text: #e0e0e0;
+            --bdh-accent: #00c3ff;
+            --bdh-glass: rgba(25, 25, 30, 0.6);
+            --bdh-panel: rgba(15, 15, 20, 0.85);
+            --bdh-border: rgba(0, 195, 255, 0.2);
+        }
+
+        [data-theme="gold"] {
+            --bdh-bg: #1a1710;
+            --bdh-accent: #ffcc00;
+            --bdh-glass: rgba(30, 25, 10, 0.6);
+            --bdh-panel: rgba(25, 20, 10, 0.85);
+            --bdh-border: rgba(255, 204, 0, 0.3);
+        }
+
+        [data-theme="pink"] {
+            --bdh-bg: #140510;
+            --bdh-accent: #ff00ff;
+            --bdh-glass: rgba(30, 10, 25, 0.6);
+            --bdh-panel: rgba(20, 5, 15, 0.85);
+            --bdh-border: rgba(255, 0, 255, 0.3);
+        }
+
+        [data-theme="black"] {
+            --bdh-bg: #000000;
+            --bdh-accent: #555555;
+            --bdh-glass: rgba(10, 10, 10, 0.7);
+            --bdh-panel: rgba(5, 5, 5, 0.95);
+            --bdh-border: rgba(85, 85, 85, 0.3);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bdh-bg);
+            color: var(--bdh-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Contenedor donde se inyecta el SQR de fondo */
+        #sqr-background-target {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none; /* Para no bloquear UI frontal */
+            opacity: 0.8;
+        }
+
+        /* ----------------------------------------------------- */
+        /* 1. MÓDULO IZQUIERDO: SIDEBAR CONFIG (CSS AVANZADO)    */
+        /* ----------------------------------------------------- */
+        
+        .config-btn-label {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: var(--bdh-glass);
+            border: 1px solid var(--bdh-accent);
+            border-radius: 50%;
+            width: 45px; height: 45px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+            color: var(--bdh-accent);
+        }
+
+        .config-btn-label:hover {
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 15px var(--bdh-accent);
+        }
+
+        #config-toggle { display: none; }
+
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--bdh-panel);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid var(--bdh-border);
+            padding: 80px 20px 20px 20px;
+            box-sizing: border-box;
+            z-index: 90;
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+        }
+
+        /* MÁQUINA DE ESTADO CSS: Abre el sidebar al marcar el checkbox */
+        #config-toggle:checked ~ .sidebar {
+            transform: translateX(0);
+        }
+
+        .sidebar h2 {
+            text-align: center; color: var(--bdh-accent);
+            margin-bottom: 30px; font-size: 1.2em;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        .sidebar button {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--bdh-border);
+            color: var(--bdh-text);
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .sidebar button:hover {
+            background: rgba(255,255,255,0.1);
+            border-left: 4px solid var(--bdh-accent);
+            transform: translateX(5px);
+        }
+
+        /* ----------------------------------------------------- */
+        /* 2. MÓDULO SQR: BARRA HORIZONTAL -> PANEL VERTICAL     */
+        /* ----------------------------------------------------- */
+
+        #sqr-engine {
+            position: fixed;
+            z-index: 50;
+            background: var(--bdh-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--bdh-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+        }
+
+        /* ESTADO INICIAL: Horizontal Superior */
+        #sqr-engine.horizontal {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            max-width: 800px;
+            height: 120px;
+            flex-direction: row;
+            align-items: center;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        /* ESTADO RENDERIZADO: Vertical Derecho */
+        #sqr-engine.vertical {
+            top: 0;
+            right: 0; /* Cerrado: transform lo saca, Abierto: lo mete */
+            left: auto;
+            width: 320px;
+            height: 100vh;
+            flex-direction: column;
+            border-radius: 0;
+            border-right: none;
+            border-top: none;
+            border-bottom: none;
+            padding: 20px;
+            transform: translateX(100%); /* Oculto por defecto al cambiar a vertical */
+        }
+
+        #sqr-engine.vertical.open {
+            transform: translateX(0); /* Abierto via Splitter */
+        }
+
+        .sqr-header-text {
+            color: var(--bdh-text);
+            font-size: 1em;
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+        }
+
+        .sqr-input-area {
+            flex: 2;
+            display: flex;
+            gap: 10px;
+            height: 100%;
+        }
+
+        #sqr-textarea {
+            flex: 1;
+            background: rgba(0,0,0,0.5);
+            border: 1px dashed var(--bdh-accent);
+            color: var(--bdh-accent);
+            border-radius: 8px;
+            padding: 10px;
+            resize: none;
+            font-family: monospace;
+        }
+
+        .btn-render {
+            background: var(--bdh-accent);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-render:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--bdh-accent);
+        }
+
+        /* Elementos exclusivos del modo vertical */
+        .vertical-only { display: none; }
+        #sqr-engine.vertical .vertical-only { display: flex; flex-direction: column; flex: 1; }
+        #sqr-engine.vertical .horizontal-only { display: none; }
+
+        /* El Splitter/Pestaña para sacar el panel derecho */
+        .splitter {
+            display: none;
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 80px;
+            background: var(--bdh-panel);
+            border: 1px solid var(--bdh-border);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            justify-content: center;
+            align-items: center;
+            color: var(--bdh-accent);
+            font-size: 1.5em;
+        }
+        #sqr-engine.vertical .splitter { display: flex; }
+
+        /* Historial de SQR */
+        .sqr-history-list {
+            list-style: none; padding: 0; overflow-y: auto; flex: 1;
+        }
+        .sqr-history-item {
+            background: rgba(0,0,0,0.4);
+            border-left: 3px solid var(--bdh-accent);
+            margin-bottom: 10px; padding: 10px; border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .sqr-history-key { font-weight: bold; color: var(--bdh-accent); }
+        .sqr-history-val { color: #aaa; font-size: 0.9em; }
+
+        /* ----------------------------------------------------- */
+        /* FOOTER BDH                                            */
+        /* ----------------------------------------------------- */
+        .footer {
+            position: fixed;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            background: var(--bdh-glass);
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--bdh-border);
+            text-align: center; padding: 15px 30px;
+            border-radius: 8px; z-index: 10;
+        }
+        .footer-title { color: var(--bdh-accent); font-weight: bold; letter-spacing: 1px; font-size: 0.9em; }
+        .footer-sub { font-size: 0.7em; color: #888; letter-spacing: 0.5px; margin-top: 5px; display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- TARGET PARA EL RENDER SQR (FONDO) -->
+    <div id="sqr-background-target"></div>
+
+
+    <!-- MÓDULO 1: Configuración Izquierda -->
+    <input type="checkbox" id="config-toggle">
+    <label for="config-toggle" class="config-btn-label" title="Abrir Configuración">⚙️</label>
+    
+    <div class="sidebar">
+        <h2>🛠️ Subsistema</h2>
+        <button onclick="recordarId()">🆔 Recordar ID de UTFBK (😜)</button>
+        <button onclick="exportarVtha()">📥 Exportar User Name (.vtha)</button>
+        <button onclick="cambiarTema()">🎨 Cambiar Tema (Sincronización)</button>
+    </div>
+
+    <!-- MÓDULO 2: Motor SQR -->
+    <div id="sqr-engine" class="horizontal">
+        <div class="splitter" onclick="toggleRightPanel()" id="sqr-splitter">◀</div>
+        
+        <div class="sqr-header-text horizontal-only">
+            Arrastra, sube, genera o escribe tu SQR<br>para renderizarlo en el entorno.
+        </div>
+
+        <div class="sqr-input-area horizontal-only">
+            <textarea id="sqr-textarea" placeholder="<SQR>\n<h1>Hola Universo</h1>\n</SQR>"></textarea>
+            <button class="btn-render" onclick="renderSQR()">RENDER</button>
+        </div>
+
+        <div class="vertical-only">
+            <h3 style="color: var(--bdh-accent); border-bottom: 1px solid var(--bdh-border); padding-bottom: 10px;">📚 Historial SQR</h3>
+            <ul class="sqr-history-list" id="sqr-history-list">
+                <!-- Se inyecta historial aquí -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- MINIFOOTER BDH -->
+    <div class="footer">
+        <span class="footer-title">RENEGADE ROOM BY UNIVERSO BDH</span><br>
+        <span class="footer-sub">RENDERIZADOR SQR/ROUSE/VTHA EJECUTADO POR TARÁNTULA LENGUAJE/PYTHON</span>
+    </div>
+
+    <!-- LÓGICA MÓDULOS 1 Y 2 -->
+    <script>
+        // -- Tema --
+        const temas = ['default', 'gold', 'black', 'pink'];
+        let temaActual = 0;
+        function cambiarTema() {
+            temaActual = (temaActual + 1) % temas.length;
+            document.documentElement.setAttribute('data-theme', temas[temaActual]);
+        }
+
+        // -- Subsistema VTHA --
+        let currentUserId = "UTFBK_" + Math.floor(Math.random() * 99999);
+        let currentUserName = "GUEST_RENEGADE";
+
+        function recordarId() {
+            alert(`Tu ID UTFBK (😜) ha sido sincronizado en memoria local.\nID: ${currentUserId}`);
+        }
+
+        function exportarVtha() {
+            const contenido = `--- EXPEDIENTE VTHA ---\nUSER=${currentUserName}\nID=${currentUserId}\nSTATUS=ACTIVE\nACCESS=GRANTED`;
+            const blob = new Blob([contenido], { type: 'text/plain' });
+            const enlace = document.createElement('a');
+            enlace.href = URL.createObjectURL(blob);
+            enlace.download = `${currentUserName}.vtha`;
+            document.body.appendChild(enlace);
+            enlace.click();
+            document.body.removeChild(enlace);
+        }
+
+        // -- Subsistema SQR Render & Historial --
+        const sqrEngine = document.getElementById('sqr-engine');
+        const sqrTarget = document.getElementById('sqr-background-target');
+        const sqrTextarea = document.getElementById('sqr-textarea');
+        const sqrHistoryList = document.getElementById('sqr-history-list');
+        const splitter = document.getElementById('sqr-splitter');
+        let isRightPanelOpen = false;
+        
+        // Historial array: { title, path, date, code }
+        let renderHistory = [];
+
+        function renderSQR() {
+            const rawCode = sqrTextarea.value.trim();
+            if(!rawCode) return;
+
+            // Inyectar al fondo
+            sqrTarget.innerHTML = rawCode;
+
+            // Transformar UI de Horizontal a Vertical
+            sqrEngine.classList.remove('horizontal');
+            sqrEngine.classList.add('vertical');
+            
+            // Guardar en historial
+            const dateStr = new Date().toLocaleString();
+            const sqrName = `SQR_RENDER_${renderHistory.length + 1}`;
+            const pathInfo = `/root/bdh/sqr/${sqrName}`;
+            
+            renderHistory.push({
+                title: sqrName,
+                path: pathInfo,
+                date: dateStr,
+                code: rawCode
+            });
+
+            // Ordenar alfabéticamente (A-Z)
+            renderHistory.sort((a, b) => a.title.localeCompare(b.title));
+
+            actualizarHistorialUI();
+            
+            // Abrir automáticamente el panel al hacer el render
+            if(!isRightPanelOpen) toggleRightPanel();
+        }
+
+        function actualizarHistorialUI() {
+            sqrHistoryList.innerHTML = '';
+            renderHistory.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'sqr-history-item';
+                li.innerHTML = `
+                    <div class="sqr-history-key">${item.title}</div>
+                    <div class="sqr-history-val">RUTA: ${item.path}</div>
+                    <div class="sqr-history-val">FECHA: ${item.date}</div>
+                `;
+                sqrHistoryList.appendChild(li);
+            });
+        }
+
+        function toggleRightPanel() {
+            isRightPanelOpen = !isRightPanelOpen;
+            if(isRightPanelOpen) {
+                sqrEngine.classList.add('open');
+                splitter.innerText = '▶';
+            } else {
+                sqrEngine.classList.remove('open');
+                splitter.innerText = '◀';
+            }
+        }
+    </script>
+
+
+    <!-- ========================================================================= -->
+    <!-- 3. MÓDULO CHAT: GALAXY VYOLETA (AISLADO, COPIAR DESDE AQUÍ HACIA ABAJO)  -->
+    <!-- ========================================================================= -->
+    
+    <style id="galaxy-chat-styles">
+        /* Variables internas del chat para no depender del exterior */
+        :root {
+            --gx-pink: #ff00ff;
+            --gx-pink-glow: rgba(255, 0, 255, 0.4);
+            --gx-gold: #b8860b;
+            --gx-gold-glow: rgba(184, 134, 11, 0.4);
+            --gx-dark: rgba(10, 5, 10, 0.9);
+            --gx-acrylic: radial-gradient(circle at top left, rgba(255,0,255,0.15) 0%, rgba(0,0,0,0.6) 60%, rgba(184,134,11,0.1) 100%);
+        }
+
+        #gx-chat-container {
+            position: fixed;
+            /* Se ancla al centro vertical y horizontal, expandiéndose a la derecha */
+            top: 50%;
+            left: 50%;
+            transform: translateY(-50%); 
+            z-index: 9999;
+            pointer-events: none; /* Deja pasar clicks al fondo */
+        }
+
+        /* Ventana Abierta - EVOLUCIONADA A CAJITA DE DIÁLOGO */
+        .gx-chat-window {
+            width: 380px;
+            height: 550px;
+            background: var(--gx-acrylic);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            /* Esquinas uniformes para la caja base */
+            border-radius: 20px; 
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-top: 1px solid rgba(184, 134, 11, 0.5); /* Destello dorado arriba */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(255,0,255,0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Necesario para la punta de diálogo */
+            overflow: visible; /* Permitir que la punta sobresalga */
+            pointer-events: auto;
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: left center;
+        }
+
+        /* LA PUNTA DE DIÁLOGO (Apuntando a la izquierda) */
+        .gx-chat-window::before {
+            content: '';
+            position: absolute;
+            top: 35px; /* Alineado con el avatar del header */
+            left: -14px; /* Sale hacia la izquierda */
+            border-width: 12px 14px 12px 0;
+            border-style: solid;
+            /* El color emula el fondo acrílico oscuro */
+            border-color: transparent rgba(15, 5, 15, 0.95) transparent transparent;
+            filter: drop-shadow(-2px 0px 1px rgba(255, 0, 255, 0.4));
+        }
+
+        .gx-chat-window.gx-hidden {
+            opacity: 0;
+            transform: scale(0.1) translate(-50px, 0);
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .gx-header {
+            /* Header integrado sin bordes duros */
+            background: transparent;
+            padding: 20px 20px 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+            user-select: none;
+        }
+        .gx-header:active { cursor: grabbing; }
+
+        .gx-title {
+            font-size: 1.1em;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 0 0 10px var(--gx-pink), 0 0 20px var(--gx-gold);
+            letter-spacing: 1px;
+        }
+
+        .gx-avatar {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--gx-gold);
+            box-shadow: 0 0 15px var(--gx-pink-glow);
+            object-fit: cover;
+        }
+
+        .gx-btn-min {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--gx-pink);
+            color: var(--gx-pink); font-size: 1.2em; width: 30px; height: 30px;
+            border-radius: 50%; cursor: pointer; transition: 0.3s;
+            display: flex; justify-content: center; align-items: center;
+            padding-bottom: 5px;
+        }
+        .gx-btn-min:hover { background: var(--gx-pink); color: #000; box-shadow: 0 0 15px var(--gx-pink); }
+
+        .gx-body {
+            flex: 1; padding: 15px 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 15px;
+            /* Scrollbar invisible */
+            scrollbar-width: none;
+        }
+        .gx-body::-webkit-scrollbar { display: none; }
+
+        /* TECLADO DE EMOJIS BKING ESTILO CELULAR */
+        .gx-bking-panel {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            max-height: 130px; /* Altura controlada estilo teclado móvil */
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(184, 134, 11, 0.3);
+            border-bottom: 1px solid rgba(184, 134, 11, 0.3);
+            padding: 10px;
+            margin: 0; /* Ocupa el ancho total disponible */
+            scrollbar-width: thin;
+            scrollbar-color: var(--gx-gold) transparent;
+        }
+        .gx-bking-panel::-webkit-scrollbar { width: 4px; }
+        .gx-bking-panel::-webkit-scrollbar-thumb { background: var(--gx-gold); border-radius: 4px; }
+
+        .gx-emoji {
+            font-size: 1.3em;
+            text-align: center;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .gx-emoji:hover, .gx-emoji.selected {
+            background: rgba(255, 0, 255, 0.3);
+            transform: scale(1.15);
+            box-shadow: 0 0 10px var(--gx-pink-glow);
+        }
+
+        .gx-msg-bot {
+            background: linear-gradient(135deg, rgba(184, 134, 11, 0.8), rgba(0,0,0,0.6));
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 20px 20px 20px 5px;
+            font-size: 0.85em;
+            max-width: 85%;
+            box-shadow: 3px 3px 15px rgba(0,0,0,0.6);
+            border-left: 2px solid var(--gx-gold);
+            align-self: flex-start;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .gx-msg-user {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.3), rgba(0,0,0,0.5));
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 20px 20px 5px 20px;
+            font-size: 0.85em;
+            max-width: 85%;
+            box-shadow: -3px 3px 15px rgba(0,0,0,0.6);
+            border-right: 2px solid var(--gx-pink);
+            align-self: flex-end;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .gx-typing {
+            font-style: italic; opacity: 0.7; color: var(--gx-gold);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        .gx-input-area {
+            padding: 12px 15px 15px 15px;
+            display: flex; gap: 10px;
+            background: transparent;
+            align-items: center;
+        }
+        
+        /* Display del Token seleccionado */
+        .gx-token-preview {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: rgba(184, 134, 11, 0.2);
+            border: 1px solid var(--gx-gold);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.3em; color: #fff;
+            flex-shrink: 0;
+        }
+
+        .gx-input-area input {
+            flex: 1;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(184, 134, 11, 0.5);
+            border-radius: 20px;
+            padding: 12px 20px;
+            color: #fff; outline: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .gx-input-area input:focus { 
+            box-shadow: 0 0 15px var(--gx-gold-glow);
+            border-color: var(--gx-gold);
+        }
+        
+        .gx-btn-send {
+            background: var(--gx-pink);
+            border: none; border-radius: 50%;
+            width: 42px; height: 42px;
+            color: #000; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 10px var(--gx-pink-glow);
+            transition: 0.3s;
+        }
+        .gx-btn-send:hover { transform: scale(1.1); background: #fff; }
+
+        /* Burbuja Flotante */
+        .gx-bubble {
+            width: 65px; height: 65px;
+            background: linear-gradient(135deg, var(--gx-pink), #8b008b);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.7), 0 0 25px var(--gx-pink-glow);
+            cursor: pointer; pointer-events: auto;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            position: absolute; bottom: 0; left: 0;
+            user-select: none;
+        }
+        
+        .gx-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8), 0 0 35px var(--gx-pink);
+        }
+
+        .gx-bubble.gx-hidden {
+            opacity: 0; transform: scale(0); pointer-events: none;
+        }
+
+        .gx-bubble img {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+        }
+    </style>
+
+    <div id="gx-chat-container">
+        
+        <!-- Ventana de Chat -->
+        <div id="gx-window" class="gx-chat-window">
+            <div class="gx-header" id="gx-drag-handle">
+                <div class="gx-title">
+                    <img src="https://placehold.co/100x100/ff00ff/000000?text=GV" class="gx-avatar" alt="Avatar">
+                    VITALANETJER
+                </div>
+                <button class="gx-btn-min" id="gx-minimize" title="Minimizar">_</button>
+            </div>
+            
+            <div class="gx-body" id="gx-chat-body">
+                <div class="gx-msg-bot">
+                    AQUÍ GALAXY VYOLETA, VS-001.<br>INGRESA TU ALIAS Y SELECCIONA TU TOKEN UTF-BK PARA EL ENLACE 😁
+                </div>
+            </div>
+
+            <!-- PANEL BKING CELULAR (NUEVO) -->
+            <div class="gx-bking-panel" id="gx-bking-panel">
+                <!-- Se inyectan emojis por JS -->
+            </div>
+
+            <div class="gx-input-area">
+                <div id="gx-token-preview" class="gx-token-preview">❓</div>
+                <input type="text" id="gx-input-text" placeholder="Ingresa tu Alias..." autocomplete="off">
+                <button class="gx-btn-send" id="gx-btn-send">➤</button>
+            </div>
+        </div>
+
+        <!-- Burbuja (Oculta por defecto) -->
+        <div id="gx-bubble" class="gx-bubble gx-hidden" title="Abrir Chat">
+            <img src="https://placehold.co/100x100/ff00ff/000000?text=GV" alt="Avatar">
+        </div>
+
+    </div>
+
+    <script id="galaxy-chat-logic">
+        (function() {
+            const gxContainer = document.getElementById('gx-chat-container');
+            const gxWindow = document.getElementById('gx-window');
+            const gxBubble = document.getElementById('gx-bubble');
+            const btnMin = document.getElementById('gx-minimize');
+            const dragHandle = document.getElementById('gx-drag-handle');
+            
+            const chatBody = document.getElementById('gx-chat-body');
+            const inputText = document.getElementById('gx-input-text');
+            const btnSend = document.getElementById('gx-btn-send');
+            
+            // --- LÓGICA BKING (TECLADO CELULAR) ---
+            const bkingPanel = document.getElementById('gx-bking-panel');
+            const tokenPreview = document.getElementById('gx-token-preview');
+            let selectedToken = null;
+            
+            const bkingTokens = [
+                "🔥", "🌸", "🕷", "🕸", "☠", "♟", "🩸", "🍃", "🐼", "😹", "🧠", "👻", "👽", "⚔", "🐎", "🤖", 
+                "📌", "📡", "🗡", "📦", "🧰", "🏧", "🎯", "🍱", "🖤", "🚀", "♠", "🛸", "🏞", "🌹", "👑", "👗", 
+                "🧚🏼‍♀️", "👅", "🐲", "🎃", "🐱‍👤", "🌚", "🍄", "💎", "💅", "💼", "🎱", "📈", "🧱", "🚁", "🧺", "🪐", 
+                "🐉", "💀", "🤫", "📚", "✨", "👹", "😎", "🐍", "🎻", "💞", "🛡️", "🧬", "🧿", "🪓", "🦾", "🦇", 
+                "🪄", "🪞", "🛠", "🌌", "🦕", "👿", "🌍", "🏝", "🦄", "🟣", "🎡", "🗺", "🍀", "🗼", "🔁", "⌛", 
+                "📖", "🗄", "🖼", "🌀", "▶", "🐛", "⏳", "🦋", "👾", "🍨", "⚖", "⚰", "🎇", "🚥", "🗽", "📽", 
+                "🎭", "🎦", "🪔", "🔦", "💡", "🧊", "💠", "🕯", "😲", "🧃", "👁‍🗨", "💜", "😊", "🧙‍♂", "🥚", "🍇", 
+                "🌆", "🎈", "🚪", "☮", "📝", "🎒", "🕋", "🥊", "🏴‍‍‍☠️", "🏴", "🔎", "🔍", "🍂", "😼", "🌑", "🎙", 
+                "🆚", "🆑", "🎀", "💽", "🌷", "👉🏼", "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", 
+                "🫠", "😉", "😇", "🥰", "😍", "🤩", "😘", "😗", "☺", "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", 
+                "😝", "🤑", "🤗", "🤭", "🫢", "🫣", "🤔", "🫡", "🤐", "🤨", "😐", "😑", "😶", "🫥", "😏", "😒", 
+                "🙄", "😬", "🤥", "🫨", "😌", "😔", "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵"
+            ];
+
+            // Renderizar teclado emoji
+            bkingTokens.forEach(token => {
+                const el = document.createElement('div');
+                el.className = 'gx-emoji';
+                el.textContent = token;
+                el.onclick = () => {
+                    document.querySelectorAll('.gx-emoji').forEach(e => e.classList.remove('selected'));
+                    el.classList.add('selected');
+                    selectedToken = token;
+                    tokenPreview.textContent = token;
+                };
+                bkingPanel.appendChild(el);
+            });
+
+            function addMsg(text, type, isTyping = false) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = type === 'user' ? 'gx-msg-user' : 'gx-msg-bot';
+                if(isTyping) msgDiv.classList.add('gx-typing');
+                
+                // Si contiene HTML (saltos de linea) lo renderizamos, sino textContent
+                msgDiv.innerHTML = text; 
+                
+                const id = 'msg_' + Date.now();
+                msgDiv.id = id;
+                chatBody.appendChild(msgDiv);
+                chatBody.scrollTop = chatBody.scrollHeight;
+                return id;
+            }
+
+            function updateMsg(id, text) {
+                const msgDiv = document.getElementById(id);
+                if(msgDiv) {
+                    msgDiv.innerHTML = text;
+                    msgDiv.classList.remove('gx-typing');
+                }
+            }
+
+            async function procesarMensajeIA() {
+                const alias = inputText.value.trim();
+                if(!alias) return;
+
+                // Construimos el mensaje con el token si hay uno seleccionado
+                const mensajeFinal = selectedToken ? `[${selectedToken}] ${alias}` : alias;
+                
+                // 1. Mostrar mensaje del usuario
+                addMsg(mensajeFinal, 'user');
+                inputText.value = '';
+                
+                // Reset del token visual
+                tokenPreview.textContent = '❓';
+                document.querySelectorAll('.gx-emoji').forEach(e => e.classList.remove('selected'));
+                const tokenParaIA = selectedToken;
+                selectedToken = null;
+
+                // 2. Mostrar indicador de carga IA
+                const typingId = addMsg("📡 Estableciendo conexión matriz...", 'bot', true);
+
+                try {
+                    // SIMULACIÓN VISUAL BKING
+                    setTimeout(() => {
+                        if(tokenParaIA) {
+                            updateMsg(typingId, `Estatus confirmado para <b>${alias}</b>.<br>Matriz <b>${tokenParaIA}</b> enlazada exitosamente a la red.`);
+                        } else {
+                            updateMsg(typingId, `Recibido, <b>${alias}</b>. (<i>Advertencia: No seleccionaste Token BKING</i>).`);
+                        }
+                    }, 1500);
+
+                } catch (error) {
+                    updateMsg(typingId, "⚠️ Error de conexión con el Dark Site. Verifica la anomalía espacial.");
+                    console.error("Dark Site Error:", error);
+                }
+            }
+
+            // Eventos de envío de chat
+            btnSend.addEventListener('click', procesarMensajeIA);
+            inputText.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') procesarMensajeIA();
+            });
+
+
+            // Función de Cambio de Estado
+            function abrirGxChat() {
+                gxBubble.classList.add('gx-hidden');
+                gxWindow.classList.remove('gx-hidden');
+            }
+
+            function cerrarGxChat() {
+                gxWindow.classList.add('gx-hidden');
+                gxBubble.classList.remove('gx-hidden');
+            }
+
+            btnMin.addEventListener('click', cerrarGxChat);
+
+            // Auto-minimizar tras 8 segundos (Requerimiento)
+            setTimeout(() => {
+                if(!gxWindow.classList.contains('gx-hidden')) {
+                    cerrarGxChat();
+                }
+            }, 8000);
+
+            // Lógica Física VTHA Drag & Drop Aislada
+            let drag = false;
+            let startX, startY;
+            let cLeft, cTop;
+            let mX = 0, mY = 0;
+
+            const draggables = [dragHandle, gxBubble];
+
+            draggables.forEach(el => {
+                el.addEventListener('mousedown', (e) => {
+                    if(e.target === btnMin) return;
+                    drag = true; mX = 0; mY = 0;
+                    startX = e.clientX; startY = e.clientY;
+                    const rect = gxContainer.getBoundingClientRect();
+                    cLeft = rect.left; cTop = rect.top;
+                    
+                    /* Limpiamos transform para que no pelee con el drag absoluto */
+                    gxContainer.style.transform = 'none';
+                    gxContainer.style.bottom = 'auto';
+                    gxContainer.style.right = 'auto';
+                    gxContainer.style.left = `${cLeft}px`;
+                    gxContainer.style.top = `${cTop}px`;
+
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+            });
+
+            function onMove(e) {
+                if(!drag) return;
+                mX = e.clientX - startX;
+                mY = e.clientY - startY;
+                gxContainer.style.left = `${cLeft + mX}px`;
+                gxContainer.style.top = `${cTop + mY}px`;
+            }
+
+            function onUp(e) {
+                if(!drag) return;
+                drag = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+
+                // Diferenciar Click vs Drag (Tolerancia de 5px)
+                const dist = Math.sqrt(mX*mX + mY*mY);
+                if (dist < 5 && (e.target === gxBubble || gxBubble.contains(e.target))) {
+                    abrirGxChat();
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+ <div class="caja-contenido">
+    <span class="cerrar-btn" onclick="cerrarCaja()">&times;</span>
+    <h2>NÚCLEO BDH</h2>
+    <p>Ajustes de Sinergia IA y Configuración de Tema.</p>
+  </div>
+</div>
+<style>
+.caja-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75); /* Fondo oscuro semitransparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.caja-contenido {
+  background: rgba(20, 10, 30, 0.95);
+  border: 1px solid var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-color);
+  padding: 25px;
+  border-radius: 12px;
+  min-width: 320px;
+  color: var(--text-color);
+}
+
+.hidden {
+  display: none;
+}
+</style>
+<script>
+function abrirCaja() {
+  document.getElementById('caja-modal').classList.remove('hidden');
+}
+
+function cerrarCaja() {
+  document.getElementById('caja-modal').classList.add('hidden');
+}
+</script>

@@ -1,0 +1,330 @@
+<!TIPODOC SQR 🐍🕸️>
+<SQR lang="es">
+</🕷🕸>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLACK TUBE BY UNIVERSO BDH</title>
+</🕷🕸>
+</🛸></🌹></🐛🦇>
+<body style="background-image: url('../3.png'); background-size: cover; margin: 0; padding: 0; box-sizing: border-box;">
+<body>
+    <!-- 1. LOS INPUTS MAESTROS DEBEN IR JUSTO AQUÍ, DENTRO DEL BODY -->
+    <input type="radio" id="theme-pink" name="theme-switch" checked style="display:none;">
+    <input type="radio" id="theme-gold" name="theme-switch" style="display:none;">
+
+    <input type="radio" id="view-normal" name="slide" checked style="display:none;">
+    <input type="radio" id="view-cinema" name="slide" style="display:none;">
+    <input type="radio" id="view-mini" name="slide" style="display:none;">
+    <input type="radio" id="season-1" name="season-slide" checked style="display:none;">
+    <input type="radio" id="season-2" name="season-slide" style="display:none;">
+
+    <div class="sqr-wrapper">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            
+            /* TEMA 🐉 ROSA ELÉCTRICO */
+            #theme-pink:checked ~ .sqr-wrapper {
+                --color-primary: #ff00d4;
+                --color-secondary: #ff0095;
+                --color-text: #ffffff;
+                --color-muted: #795974;
+                --bg-solid: #000000;
+                --glow: rgba(255, 0, 157, 0.6);
+                --gradient-frame: radial-gradient(circle, #ff00d4 0%, #ff0095 30%, #000 100%);
+                --border-subtle: rgba(250, 0, 167, 0.459);
+            }
+
+            /* TEMA 🐎 DORADO */
+            #theme-gold:checked ~ .sqr-wrapper {
+                --color-primary: #D4AF37;
+                --color-secondary: #7c6107;
+                --color-text: #ffffff;
+                --color-muted: #a39158;
+                --bg-solid: #000000;
+                --glow: rgba(212, 175, 55, 0.6);
+                --gradient-frame: radial-gradient(circle, #D4AF37 0%, #7c6107 30%, #000 100%);
+                --border-subtle: rgba(212, 175, 55, 0.459);
+            }
+
+            /* BASE SQR */
+            .sqr-wrapper {
+                font-family: 'OLD ENGLISH TEXT', serif;
+                background-color: var(--bg-solid);
+                background-image: url('../3.png');
+                background-size: cover;
+                background-attachment: fixed;
+                color: var(--color-primary);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* NAVBAR (Elevado a 10000 para que jamás sea bloqueado) */
+            .navbar { position: sticky; top: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.95); border-bottom: 1px solid var(--border-subtle); z-index: 10000; padding: 1rem 0; }
+            .navbar-content { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; padding: 0 1rem; }
+            .nav-tools { display: flex; gap: 15px; align-items: center; }
+            
+            /* BLAZAR ON READY ENLACE - REDIRECCIÓN MAESTRA */
+            .brand-link {
+                color: var(--color-primary);
+                text-decoration: none;
+                font-size: 1.5rem;
+                font-weight: bold;
+                text-transform: uppercase;
+                text-shadow: 0 0 10px var(--glow);
+                letter-spacing: 2px;
+                transition: color 0.3s, text-shadow 0.3s;
+            }
+            .brand-link:hover {
+                color: var(--color-text);
+                text-shadow: 0 0 15px var(--color-primary);
+            }
+
+            .theme-selector { display: flex; gap: 10px; border-right: 1px solid var(--border-subtle); padding-right: 15px; border-left: 1px solid var(--border-subtle); padding-left: 15px; margin-left: 15px;}
+            .theme-btn { cursor: pointer; padding: 5px 10px; border-radius: 5px; border: 1px solid var(--color-primary); background: #111; color: #fff; font-weight: bold; }
+            
+            #theme-pink:checked ~ .sqr-wrapper label[for="theme-pink"], 
+            #theme-gold:checked ~ .sqr-wrapper label[for="theme-gold"] { background: var(--color-primary); color: #000; box-shadow: 0 0 10px var(--glow); }
+
+            .view-btn { color: var(--color-primary); cursor: pointer; font-weight: bold; padding: 0.5rem; text-transform: uppercase; }
+            
+            #view-normal:checked ~ .sqr-wrapper label[for="view-normal"],
+            #view-cinema:checked ~ .sqr-wrapper label[for="view-cinema"],
+            #view-mini:checked ~ .sqr-wrapper label[for="view-mini"] { color: var(--color-text); border-bottom: 2px solid var(--color-primary); text-shadow: 0 0 10px var(--glow); }
+
+            /* DROPDOWN */
+            .dropdown-container { position: relative; display: inline-block; }
+            .dropdown-toggle { cursor: pointer; padding: 8px 15px; background: #000; border: 1px solid var(--color-primary); color: var(--color-primary); border-radius: 5px; font-weight: bold; }
+            .dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: #0a0a0a; border: 1px solid var(--border-subtle); min-width: 250px; box-shadow: 0 10px 25px rgba(0,0,0,0.9); margin-top: 10px; z-index: 2000; border-radius: 8px; overflow: hidden; }
+            #toggle-config { display: none; }
+            #toggle-config:checked ~ .dropdown-menu { display: block; }
+            
+            /* INSTRUCTIVO MINI DEL BLACK HOLE INYECTADO AQUÍ */
+            .dropdown-instruct { background: rgba(255, 255, 255, 0.05); padding: 15px; text-align: center; border-bottom: 1px solid var(--border-subtle); }
+            .dropdown-instruct strong { color: var(--color-primary); font-size: 1.1rem; display: block; margin-bottom: 5px; text-shadow: 0 0 5px var(--glow); }
+            .dropdown-instruct p { color: var(--color-text); font-size: 0.85rem; margin: 0; }
+
+            .dropdown-item { padding: 12px 15px; color: var(--color-text); border-bottom: 1px solid #222; cursor: pointer; }
+            .dropdown-item:hover { background: var(--color-secondary); color: #000; }
+
+            /* MARCO DEL REPRODUCTOR */
+            .main-container { display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; z-index: 9; padding-top: 20px; }
+            .title { font-size: 3rem; color: var(--color-primary); text-align: center; margin-bottom: 20px; text-shadow: 2px 2px 0px #000, 0 0 15px var(--glow); -webkit-text-stroke: 1px #000; }
+            
+            .video-frame { position: relative; width: 85%; max-width: 1100px; padding: 5px; background: var(--gradient-frame); border-radius: 10px; box-shadow: 0 0 30px var(--glow), 0 0 60px rgba(0, 0, 0, 0.9); margin: 0 auto; transition: all 0.4s ease; z-index: 10; }
+            
+            /* LÓGICA DE ESTADOS Y CONTROL DE Z-INDEX MODO CINE (CORREGIDO Y BLINDADO) */
+            /* Z-index: 9000 tapa absolutamente todo el fondo y el carrusel, menos el video y la barra */
+            .cinema-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 9000; pointer-events: all; }
+            
+            #view-cinema:checked ~ .sqr-wrapper .cinema-overlay { display: block; }
+            #view-cinema:checked ~ .sqr-wrapper .video-frame { width: 90vw; max-width: none; margin-top: 5vh; position: relative; z-index: 9001; }
+            #view-cinema:checked ~ .sqr-wrapper .title { display: none; }
+            
+            #view-mini:checked ~ .sqr-wrapper .video-frame { position: fixed; right: 20px; bottom: 20px; width: 400px; z-index: 3000; padding: 3px; }
+
+            /* ACORDEONES Y CARRUSELES */
+            .content-panel { width: 85%; max-width: 1100px; margin: 40px auto; background: rgba(0,0,0,0.8); border: 1px solid var(--border-subtle); padding: 20px; border-radius: 10px; overflow: hidden; position: relative; z-index: 10; }
+            .carousel-tabs { display: flex; gap: 10px; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
+            .carousel-tab { padding: 10px 20px; cursor: pointer; color: var(--color-muted); font-size: 1.2rem; transition: 0.3s; }
+            
+            #season-1:checked ~ .sqr-wrapper label[for="season-1"],
+            #season-2:checked ~ .sqr-wrapper label[for="season-2"] { color: var(--color-primary); border-bottom: 3px solid var(--color-primary); }
+
+            /* REEMPLAZA ESTAS DOS CLASES CSS */
+            .carousel-track { 
+                display: flex; 
+                width: 100%; 
+                overflow-x: auto; 
+                scroll-snap-type: x mandatory; 
+                scroll-behavior: smooth; 
+                -webkit-overflow-scrolling: touch; 
+                scrollbar-width: none; /* Oculta barra en Firefox */
+            }
+            .carousel-track::-webkit-scrollbar { display: none; /* Oculta barra en Chrome/Safari */ }
+            
+            .season-slide { 
+                flex: 0 0 100%; 
+                width: 100%; 
+                scroll-snap-align: start; 
+                padding: 0 10px; 
+            }
+
+            .accordion-item { border: 1px solid var(--border-subtle); margin-bottom: 10px; border-radius: 5px; background: #0a0a0a; overflow: hidden; }
+            .accordion-title { display: block; padding: 15px; cursor: pointer; color: var(--color-text); font-weight: bold; background: #111; }
+            .accordion-title:hover { background: var(--color-secondary); color: #000; }
+            .accordion-content { max-height: 0; padding: 0 15px; transition: max-height 0.4s ease, padding 0.4s ease; color: var(--color-muted); }
+            
+            .acc-check { display: none; }
+            .acc-check:checked + .accordion-title + .accordion-content { max-height: 500px; padding: 15px; }
+        </style>
+
+        <div class="cinema-overlay"></div>
+
+        <nav class="navbar">
+            <div class="navbar-content">
+                
+                <a href="https://ent.universobdh.me/bor/" class="brand-link">
+                    BLAZAR ON READY
+                </a>
+
+                <div class="theme-selector">
+                    <label for="theme-pink" class="theme-btn">🐉</label>
+                    <label for="theme-gold" class="theme-btn">🐎</label>
+                </div>
+                
+                <div class="nav-tools">
+                    <label for="view-normal" class="view-btn">Estándar</label>
+                    <label for="view-cinema" class="view-btn">Cine</label>
+                    <label for="view-mini" class="view-btn">Mini</label>
+                    <div class="dropdown-container">
+                        <input type="checkbox" id="toggle-config">
+                        <label for="toggle-config" class="dropdown-toggle">⚙️ Ajustes</label>
+                        
+                        <div class="dropdown-menu">
+                            <div class="dropdown-instruct">
+                                <strong>💡 Control Total</strong>
+                                <p>Haz clic derecho sobre el video para invocar el <i>Black Hole</i> y ajustar subtítulos, audios y velocidad.</p>
+                            </div>
+                            <div class="dropdown-item">🗣️ Audio: Español</div>
+                            <div class="dropdown-item">📝 Subs: Apagados</div>
+                            <div class="dropdown-item">⏩ Vel: 1.0x</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+       <div class="main-container">
+            <h1 class="title">BDH ENTERTAINMENT</h1>
+            
+            <div class="video-frame">
+                <div id="reproductor-blazar"></div>
+
+                <!-- 1. PRIMERO SE CARGA EL MICRO-MOTOR MATEMÁTICO -->
+                <script src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3"></script>
+                
+                <!-- 2. LUEGO SE CARGA SU MOTOR PRINCIPAL -->
+                <script src="blazar-player.js?v=20260927-hls-fix-5"></script>
+                
+                <!-- 3. ARRANQUE UNIVERSAL (MKV, MP4, HLS, AZURE BLOB Y MULTI-SERIES) -->
+                <script>
+                    // SAS Token maestro - se usa cuando la URL llega sin token propio
+                    const AZURE_SAS_TOKEN_RAW = "sp=r&st=2026-09-25T20:51:50Z&se=2027-09-26T05:06:50Z&sv=2026-02-06&sr=c&sig=6NCuDi%2FQRTymkk959lCGT9RHQbrS1HmVrayem5VU5Kg%3D";
+                    const parametros = new URLSearchParams(window.location.search);
+                    let finalUrl = parametros.get('src');
+
+                    if (finalUrl) {
+                        // INYECCIÓN DE EMERGENCIA: si la URL de Azure no trae SAS, inyectar el maestro
+                        if (finalUrl.includes('blob.core.windows.net')) {
+                            finalUrl = finalUrl.split('?')[0] + '?' + AZURE_SAS_TOKEN_RAW;
+                            console.log('🔑 SAS Token maestro inyectado en URL huérfana.');
+                        }
+
+                        // Inicializar reproductor para cualquier formato (HLS, MKV, MP4, etc.)
+                        const miMotor = new BlazarPlayer('#reproductor-blazar', finalUrl);
+                        
+                        // Constructor automático de episodios para la serie correspondiente
+                        autoConstruirEpisodios(finalUrl);
+                    } else {
+                        console.error("Error: Ningún archivo fue enviado al reproductor.");
+                    }
+                    
+                    async function autoConstruirEpisodios(archivoActual) {
+                        // 1. Detección dinámica de la serie según el archivo solicitado
+                        let dbName = 'soprano.jsonl';
+                        const str = archivoActual.toLowerCase();
+                        if (str.includes('juego') || str.includes('tronos') || str.includes('got')) {
+                            dbName = 'juego.jsonl';
+                        } else if (str.includes('breaking')) {
+                            dbName = 'breaking.jsonl';
+                        }
+                        
+                        let response = await fetch('bases_de_datos/' + dbName).catch(() => null);
+                        if (!response || !response.ok) response = await fetch('../bases_de_datos/' + dbName).catch(() => null);
+                        if (!response || !response.ok) return; 
+                        
+                        const textData = await response.text();
+                        const epsBySeason = {};
+                        
+                        for (const line of textData.split('\n')) {
+                            if (line.trim()) {
+                                try {
+                                    const meta = JSON.parse(line.trim());
+                                    if (meta.name) {
+                                        const match = meta.name.match(/(\d+)x(\d+)/i) || meta.name.match(/s(\d+)-?e(\d+)/i) || meta.name.match(/t(\d+)-?c(\d+)/i);
+                                        if (match) {
+                                            const s = parseInt(match[1]);
+                                            const e = parseInt(match[2]);
+                                            if (!epsBySeason[s]) epsBySeason[s] = [];
+                                            epsBySeason[s].push({
+                                                name: meta.name, ep: e
+                                            });
+                                        }
+                                    }
+                                } catch(e) {}
+                            }
+                        }
+                        
+                        const panel = document.querySelector('.content-panel');
+                        if (!panel || Object.keys(epsBySeason).length === 0) return;
+                        
+                        Object.keys(epsBySeason).forEach(s => epsBySeason[s].sort((a, b) => a.ep - b.ep));
+                        
+                        let tabsHtml = '<div class="carousel-tabs">';
+                        let tracksHtml = '<div class="carousel-track">'; // Ya no necesita width dinámico ni transform
+                        
+                        let activeSeason = 0;
+                        const isAzureHls = archivoActual.includes('.m3u8') && archivoActual.includes('blob.core.windows.net');
+                        
+                        Object.keys(epsBySeason).sort((a,b)=>a-b).forEach((s, index) => {
+                            // Cambiamos el transform por scrollIntoView
+                            tabsHtml += '<label class="carousel-tab" onclick="document.getElementById(\x27slide-temp-' + index + '\x27).scrollIntoView({behavior: \x27smooth\x27})">Temporada ' + s + '</label>';
+                            
+                            // Agregamos el ID al slide para que el scroll lo encuentre
+                            tracksHtml += '<div id="slide-temp-' + index + '" class="season-slide">';
+                            
+                            epsBySeason[s].forEach(ep => {
+                                const isCurrent = archivoActual.includes('-C' + ep.ep + '/') || 
+                                                  archivoActual.includes(s + 'x' + (ep.ep < 10 ? '0' + ep.ep : ep.ep)) ||
+                                                  archivoActual.includes(ep.name);
+                                if (isCurrent) activeSeason = index;
+                                const epId = 's' + s + 'e' + ep.ep;
+                                const title = isCurrent ? ('▶ Episodio ' + ep.ep + ' (Reproduciendo)') : ('Episodio ' + ep.ep);
+                                const color = isCurrent ? '#ff00d4' : 'var(--color-text)';
+                                
+                                // Si estamos en Azure HLS, cambiar al capítulo de Azure. Si es MKV/archivo normal, cambiar a su nombre directo.
+                                let destinoUrl = ep.name;
+                                if (isAzureHls) {
+                                    destinoUrl = archivoActual.replace(/\/S32-T\d+\/S32-T\d+-C\d+\//, '/S32-T' + s + '/S32-T' + s + '-C' + ep.ep + '/').replace(/-T\d+-C\d+\//, '-T' + s + '-C' + ep.ep + '/');
+                                }
+                                
+                                tracksHtml += '<div class="accordion-item" style="border-color: ' + (isCurrent ? '#ff00d4' : 'var(--border-subtle)') + '">';
+                                tracksHtml += '<input type="checkbox" id="' + epId + '" class="acc-check" ' + (isCurrent ? 'checked' : '') + '>';
+                                tracksHtml += '<label for="' + epId + '" class="accordion-title" style="color: ' + color + '" data-url="' + encodeURIComponent(destinoUrl) + '" onclick="if(!' + isCurrent + ') window.location.href=\x27?src=\x27 + this.getAttribute(\x27data-url\x27)">' + title + '</label>';
+                                tracksHtml += '<div class="accordion-content">';
+                                tracksHtml += '<p>' + (isCurrent ? 'Este es el episodio actual.' : 'Haz clic para reproducir este episodio.') + '</p>';
+                                tracksHtml += '</div>';
+                                tracksHtml += '</div>';
+                            });
+                            tracksHtml += '</div>';
+                        });
+                        
+                        panel.innerHTML = tabsHtml + '</div>' + tracksHtml + '</div>';
+                        
+                        // Auto-posicionar pestaña activa
+                        setTimeout(() => {
+                            const activeSlide = document.getElementById('slide-temp-' + activeSeason);
+                            if (activeSlide) activeSlide.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                    }
+                </script>
+            </div>
+        </div>
+        
+        <div class="content-panel">
+            <!-- SE LLENARÁ AUTOMÁTICAMENTE CON JAVASCRIPT -->
+        </div>
+    </div>
+</🛸>
+</🐍🕸️🖤🔥🚀>
