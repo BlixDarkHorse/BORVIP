@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BDH Mobile - Arquitectura Radical</title>
+    <style>
+        :root {
+            --bg-base: #050505;
+            --bg-surface: #121212;
+            --bg-panel: #1a1a1a;
+            --accent: #8b5cf6; /* Vyoleta BDH */
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: #2dd4bf20;
+            --footer-height: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* Minimalismo radical: sin scroll global */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* El núcleo legacy no se borra, existe en la base operativa */
+        #legacy-core-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.02;
+            pointer-events: none;
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--accent) 2px, var(--accent) 4px);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            height: 60px;
+            z-index: 10;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+        
+        .icon-btn:hover { color: var(--accent); }
+
+        h1 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        #chat-interface {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .msg-bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .msg-sys {
+            background: var(--bg-panel);
+            color: var(--accent);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .msg-user {
+            background: var(--accent);
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        #chat-input-area {
+            display: flex;
+            padding: 10px 15px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border);
+            gap: 10px;
+        }
+
+        #chat-input {
+            flex: 1;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        #chat-input:focus {
+            border-color: var(--accent);
+        }
+
+        #send-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 60px; /* Debajo del header */
+            bottom: var(--footer-height);
+            width: 85%;
+            max-width: 300px;
+            background: var(--bg-surface);
+            z-index: 50;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        /* Toggle Izquierdo: Solo Configuraciones */
+        #sidebar-left {
+            left: 0;
+            transform: translateX(-100%);
+            border-right: 1px solid var(--border);
+            border-radius: 0 16px 16px 0;
+        }
+        #sidebar-left.active { transform: translateX(0); }
+
+        /* Toggle Derecho: Solo Perfil */
+        #sidebar-right {
+            right: 0;
+            transform: translateX(100%);
+            border-left: 1px solid var(--border);
+            border-radius: 16px 0 0 16px;
+        }
+        #sidebar-right.active { transform: translateX(0); }
+
+        .sidebar-content { padding: 20px; }
+        .sidebar-title { 
+            color: var(--text-muted); 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            margin-bottom: 20px; 
+            letter-spacing: 1px;
+        }
+
+        /* Compresión al máximo: una sola línea inferior */
+        #minifooter-bdh {
+            height: var(--footer-height);
+            background: var(--bg-base);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            width: 100%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utilidades UI para los menús */
+        .menu-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .profile-avatar {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin: 0 auto 20px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- El código y capa estructural Legacy subyacente. Intacto. -->
+    <div id="legacy-core-layer"></div>
+
+    <header>
+        <button class="icon-btn" id="btn-toggle-left" onclick="toggleSidebar('left')">☰</button>
+        <h1>LORD BDH</h1>
+        <button class="icon-btn" id="btn-toggle-right" onclick="toggleSidebar('right')">👤</button>
+    </header>
+
+    <!-- Toggle Izquierdo: Configuración del Sistema -->
+    <aside class="sidebar" id="sidebar-left">
+        <div class="sidebar-content">
+            <div class="sidebar-title">Parámetros de Sistema</div>
+            <div class="menu-item"><span>Motor Cognitivo</span> <span style="color:var(--accent)">Activo</span></div>
+            <div class="menu-item"><span>Protocolo RAG</span> <span>ON</span></div>
+            <div class="menu-item"><span>Caché Local</span> <span>Limpiar</span></div>
+            <div class="menu-item"><span>Tema</span> <span>Oscuro Absoluto</span></div>
+            <div style="margin-top: 20px; font-size: 11px; color: var(--text-muted);">
+                * Configuración directa al núcleo Legacy.
+            </div>
+        </div>
+    </aside>
+
+    <!-- Toggle Derecho: Barra de Perfil -->
+    <aside class="sidebar" id="sidebar-right">
+        <div class="sidebar-content">
+            <div class="sidebar-title">Identidad Virtual</div>
+            <div class="profile-avatar"></div>
+            <div style="text-align: center; margin-bottom: 20px;" id="profile-name">Usuario Anónimo</div>
+            <div class="menu-item"><span>Nivel de Acceso</span> <span id="profile-level">No verificado</span></div>
+            <div class="menu-item"><span>Sesión Activa</span> <span>00:00:00</span></div>
+            <button style="width:100%; padding:12px; margin-top:20px; background:transparent; border:1px solid #ef4444; color:#ef4444; border-radius:8px;" onclick="resetSystem()">Purgar Sesión</button>
+        </div>
+    </aside>
+
+    <main id="chat-interface">
+        <div id="chat-history">
+            <!-- Los mensajes se inyectan aquí vía JS -->
+        </div>
+        
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Inicializando conexión..." autocomplete="off">
+            <button id="send-btn" onclick="handleSend()">➔</button>
+        </div>
+    </main>
+
+    <!-- Minifooter BDH: Comprimido a su expresión mínima fáctica -->
+    <footer id="minifooter-bdh">
+        SYS.BDH // NÚCLEO LEGACY ENLAZADO // ENCRIPTACIÓN E-2-E ACTIVA
+    </footer>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const chatInput = document.getElementById('chat-input');
+        const sidebarLeft = document.getElementById('sidebar-left');
+        const sidebarRight = document.getElementById('sidebar-right');
+        
+        // Máquina de estados para el flujo de autenticación conversacional
+        let authState = 0; // 0: Esperando Usuario, 1: Esperando NIP, 2: Autenticado
+        let tempUser = "";
+
+        // Inicialización del sistema al cargar
+        window.onload = () => {
+            appendMessage("sys", "Conexión establecida con el núcleo Legacy. Ingrese su ID de Usuario para acceder al ecosistema.");
+            chatInput.placeholder = "Escribe tu ID de usuario...";
+            chatInput.focus();
+        };
+
+        function toggleSidebar(side) {
+            if (side === 'left') {
+                sidebarLeft.classList.toggle('active');
+                sidebarRight.classList.remove('active'); // Cierra el otro
+            } else {
+                sidebarRight.classList.toggle('active');
+                sidebarLeft.classList.remove('active'); // Cierra el otro
+            }
+        }
+
+        // Cierra los toggles si se toca el área de chat
+        document.getElementById('chat-interface').addEventListener('click', () => {
+            sidebarLeft.classList.remove('active');
+            sidebarRight.classList.remove('active');
+        });
+
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('msg-bubble');
+            msgDiv.classList.add(sender === 'sys' ? 'msg-sys' : 'msg-user');
+            
+            // Si es sistema, simular tipado (opcional, aquí render directo por velocidad)
+            msgDiv.innerText = text;
+            chatHistory.appendChild(msgDiv);
+            
+            // Auto-scroll al fondo
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function handleSend() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            // Renderizar mensaje del usuario
+            // Si estamos en authState 1 (NIP), enmascaramos visualmente
+            const displayText = authState === 1 ? "••••••••" : text;
+            appendMessage('user', displayText);
+            chatInput.value = "";
+
+            // Lógica de Autenticación vs Chat Normal
+            if (authState === 0) {
+                // Estado: Capturando ID de Usuario
+                tempUser = text;
+                chatInput.placeholder = "Ingrese su NIP...";
+                chatInput.type = "password"; // Minimalismo de seguridad
+                authState = 1;
+                
+                setTimeout(() => {
+                    appendMessage('sys', `Usuario [${tempUser}] indexado. Por favor, proporcione su NIP de seguridad para validar contra el registro Legacy.`);
+                }, 400);
+
+            } else if (authState === 1) {
+                // Estado: Capturando NIP y Validando
+                chatInput.disabled = true; // Bloquear mientras valida
+                chatInput.type = "text";
+                
+                setTimeout(() => {
+                    appendMessage('sys', "Validando credenciales en base de datos Legacy...");
+                    
+                    // Simulación de respuesta del backend Legacy
+                    setTimeout(() => {
+                        authState = 2;
+                        chatInput.disabled = false;
+                        chatInput.placeholder = "Ingresa un comando o consulta...";
+                        chatInput.focus();
+                        
+                        // Actualizar Toggle Derecho (Perfil) fáctica y visualmente
+                        document.getElementById('profile-name').innerText = tempUser;
+                        document.getElementById('profile-level').innerText = "Acceso Total BDH";
+                        
+                        appendMessage('sys', `Sinergia completada. Autenticación exitosa. Bienvenido, Amo ${tempUser}. El motor cognitivo está a tu disposición.`);
+                    }, 1000);
+                }, 500);
+
+            } else if (authState === 2) {
+                // Estado: Usuario autenticado, Chat operativo normal
+                setTimeout(() => {
+                    appendMessage('sys', "Comando recibido. El sistema está procesando tu solicitud mediante las reglas arquitectónicas establecidas.");
+                }, 600);
+            }
+        }
+
+        // Permitir envío con tecla Enter
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleSend();
+            }
+        });
+
+        // Función auxiliar para purgar la sesión
+        function resetSystem() {
+            authState = 0;
+            tempUser = "";
+            document.getElementById('profile-name').innerText = "Usuario Anónimo";
+            document.getElementById('profile-level').innerText = "No verificado";
+            chatHistory.innerHTML = "";
+            toggleSidebar('right');
+            chatInput.type = "text";
+            chatInput.placeholder = "Escribe tu ID de usuario...";
+            appendMessage('sys', "Sesión purgada. Conexión restablecida con el núcleo Legacy. Ingrese su ID de Usuario.");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador Android - Estilo Motorola</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        'moto-blue': '#001489',
+                        'android-green': '#3DDC84',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            /* Prevent overscroll on mobile */
+            overscroll-behavior-y: none;
+            /* Hide scrollbars for the whole body */
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        /* Container for the phone screen */
+        #phone-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 414px; /* iPhone Max width approx */
+            max-height: 896px; /* iPhone Max height approx */
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.3s ease;
+        }
+
+        @media (min-width: 415px) {
+            #phone-container {
+                height: 90vh;
+                margin-top: 5vh;
+                border-radius: 40px;
+                border: 12px solid #333;
+            }
+        }
+
+        /* Hide scrollbars for specific elements but allow scrolling */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* App icons grid */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px 8px;
+            padding: 20px 16px;
+        }
+
+        .app-icon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .app-icon-container:active {
+            transform: scale(0.9);
+        }
+
+        .app-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 6px;
+        }
+
+        .app-label {
+            font-size: 11px;
+            color: white;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* App Drawer */
+        #app-drawer {
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dark #app-drawer {
+             background-color: rgba(30,30,30,0.95);
+        }
+
+        #app-drawer.open {
+            bottom: 0;
+        }
+        
+        /* Search Bar Widget */
+        .google-search-widget {
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 30px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            margin: 20px 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* System Apps (Full screen overlays) */
+        .system-app {
+            position: absolute;
+            top: 0;
+            left: 100%; /* Start off-screen to the right */
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 50;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dark .system-app {
+            background-color: #121212;
+            color: white;
+        }
+
+        .system-app.open {
+            left: 0;
+        }
+
+        /* App Header */
+        .app-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        .dark .app-header {
+            background-color: #1f1f1f;
+            border-bottom: 1px solid #333;
+            box-shadow: none;
+        }
+
+        /* Status Bar & Nav Bar styling */
+        .status-bar {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 60; /* Always on top */
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
+
+        .system-app-open .status-bar {
+            color: black;
+            text-shadow: none;
+        }
+        .dark.system-app-open .status-bar {
+            color: white;
+        }
+
+        .nav-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 48px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+            z-index: 60;
+        }
+        
+        .system-app-open .nav-bar {
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        .dark.system-app-open .nav-bar {
+            background: #000;
+            border-top: 1px solid #333;
+        }
+        
+        .nav-icon {
+            color: white;
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .system-app-open .nav-icon {
+            color: black;
+        }
+        .dark.system-app-open .nav-icon {
+            color: white;
+        }
+
+    </style>
+</head>
+<body class="dark" id="body-theme">
+
+    <div id="phone-container" style="background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&q=80&w=1000');">
+        
+        <!-- Status Bar -->
+        <div class="status-bar" id="status-bar">
+            <span id="clock">12:00</span>
+            <div class="flex gap-2">
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="home-screen" class="absolute inset-0 pt-8 pb-12 flex flex-col justify-between">
+            
+            <!-- Top section (Widget area) -->
+            <div>
+                <!-- Mock Clock Widget -->
+                <div class="text-center mt-12 text-white drop-shadow-md">
+                    <div id="widget-clock" class="text-6xl font-light">12:00</div>
+                    <div id="widget-date" class="text-sm font-medium mt-2 uppercase tracking-wide">Martes, 6 de Oct</div>
+                </div>
+                
+                <!-- Google Search Widget -->
+                <div class="google-search-widget cursor-text mt-8" onclick="openGoogleSearch()">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="G" class="w-6 h-6 mr-3">
+                    <span class="text-gray-500 flex-grow text-sm">Buscar...</span>
+                    <i class="fas fa-microphone text-gray-500 mx-2"></i>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg" alt="Lens" class="w-5 h-5 opacity-70 grayscale">
+                </div>
+            </div>
+
+            <!-- Bottom section (Dock) -->
+            <div class="mb-4">
+                <!-- App Drawer Indicator -->
+                <div class="flex justify-center mb-2 cursor-pointer" onclick="toggleAppDrawer()">
+                    <div class="w-10 h-1 bg-white bg-opacity-50 rounded-full"></div>
+                </div>
+                
+                <!-- Dock Apps -->
+                <div class="flex justify-around px-4">
+                    <div class="app-icon-container" onclick="openApp('phone')">
+                        <div class="app-icon bg-green-500"><i class="fas fa-phone"></i></div>
+                    </div>
+                    <div class="app-icon-container" onclick="openApp('messages')">
+                        <div class="app-icon bg-blue-500"><i class="fas fa-comment-alt"></i></div>
+                    </div>
+                    <div class="app-icon-container" onclick="openApp('chrome')">
+                        <div class="app-icon bg-white"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg" class="w-8 h-8"></div>
+                    </div>
+                    <div class="app-icon-container" onclick="openApp('camera')">
+                        <div class="app-icon bg-gray-800"><i class="fas fa-camera"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Drawer -->
+        <div id="app-drawer">
+            <!-- Search bar inside drawer -->
+            <div class="px-4 pt-12 pb-2">
+                <div class="bg-gray-200 dark:bg-gray-800 rounded-full p-2 px-4 flex items-center">
+                    <i class="fas fa-search text-gray-500 mr-2"></i>
+                    <input type="text" placeholder="Buscar apps" class="bg-transparent outline-none w-full text-sm text-black dark:text-white" onkeyup="filterApps(this.value)">
+                </div>
+            </div>
+            
+            <!-- Grid of all apps -->
+            <div class="app-grid overflow-y-auto hide-scrollbar flex-grow" id="all-apps-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Files App (System App Overlay) -->
+        <div id="app-files" class="system-app">
+            <div class="app-header">
+                <i class="fas fa-arrow-left text-xl mr-4 cursor-pointer" onclick="closeApp()"></i>
+                <h2 class="text-xl font-medium flex-grow text-gray-900 dark:text-white">Archivos</h2>
+                <i class="fas fa-search text-gray-600 dark:text-gray-300"></i>
+            </div>
+            <div class="flex-grow overflow-y-auto bg-gray-50 dark:bg-black p-4">
+                
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Almacenamiento Interno</h3>
+                    <div class="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+                        <div class="flex justify-between text-sm mb-2 text-gray-800 dark:text-gray-200">
+                            <span>45 GB usados</span>
+                            <span>128 GB total</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 35%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Carpetas</h3>
+                <div class="space-y-2" id="files-list">
+                    <!-- Folders generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings App (System App Overlay) -->
+        <div id="app-settings" class="system-app">
+            <div class="app-header">
+                <i class="fas fa-arrow-left text-xl mr-4 cursor-pointer" onclick="closeApp()"></i>
+                <h2 class="text-xl font-medium text-gray-900 dark:text-white">Configuración</h2>
+            </div>
+            <div class="flex-grow overflow-y-auto bg-gray-50 dark:bg-black">
+                
+                <div class="p-6 text-center border-b border-gray-200 dark:border-gray-800">
+                    <div class="w-20 h-20 bg-blue-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-3">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3 class="font-medium text-lg text-gray-900 dark:text-white">Usuario de Prueba</h3>
+                    <p class="text-sm text-gray-500">usuario@ejemplo.com</p>
+                </div>
+
+                <div class="p-4 space-y-1">
+                    <!-- Pantalla -->
+                    <div class="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg cursor-pointer">
+                        <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900 text-orange-500 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-medium text-gray-900 dark:text-white">Pantalla</h4>
+                            <p class="text-xs text-gray-500">Tema oscuro, fondo de pantalla</p>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Tema Oscuro -->
+                    <div class="flex items-center p-3 pl-16 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg">
+                        <div class="flex-grow">
+                            <h4 class="font-medium text-gray-900 dark:text-white text-sm">Tema Oscuro</h4>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="theme-toggle" class="sr-only peer" checked onchange="toggleTheme()">
+                          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Cambiar Fondo -->
+                    <div class="flex items-center p-3 pl-16 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg cursor-pointer" onclick="changeWallpaper()">
+                        <div class="flex-grow">
+                            <h4 class="font-medium text-gray-900 dark:text-white text-sm">Cambiar fondo de pantalla</h4>
+                        </div>
+                    </div>
+
+                    <div class="my-2 border-t border-gray-200 dark:border-gray-800"></div>
+
+                    <!-- Sistema -->
+                    <div class="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg cursor-pointer">
+                        <div class="w-10 h-10 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-medium text-gray-900 dark:text-white">Acerca del teléfono</h4>
+                            <p class="text-xs text-gray-500">Moto OS Simulator v1.0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generic App Placeholder for unsupported apps -->
+        <div id="app-generic" class="system-app">
+            <div class="app-header">
+                <i class="fas fa-arrow-left text-xl mr-4 cursor-pointer" onclick="closeApp()"></i>
+                <h2 id="generic-app-title" class="text-xl font-medium text-gray-900 dark:text-white">App</h2>
+            </div>
+            <div class="flex-grow flex items-center justify-center bg-gray-50 dark:bg-black p-6 text-center">
+                <div>
+                    <i id="generic-app-icon" class="fas fa-box text-6xl text-gray-300 dark:text-gray-700 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Aplicación no implementada</h3>
+                    <p class="text-gray-500 text-sm">Esta es una simulación del frontend. Solo Archivos y Configuración tienen interfaces creadas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Bar (Android Buttons) -->
+        <div class="nav-bar">
+            <!-- Back -->
+            <i class="fas fa-caret-left nav-icon" onclick="handleBack()"></i>
+            <!-- Home -->
+            <i class="far fa-circle nav-icon text-sm" onclick="goHome()"></i>
+            <!-- Recents -->
+            <i class="far fa-square nav-icon text-sm" onclick="showToast('Aplicaciones recientes no implementado')"></i>
+        </div>
+
+        <!-- Toast Notification Area -->
+        <div id="toast" class="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full text-sm opacity-0 transition-opacity duration-300 pointer-events-none z-[100]">
+            Mensaje
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. DATOS Y ESTADO (Lógica) ---
+        
+        const apps = [
+            { id: 'google', name: 'Google', icon: 'fab fa-google', color: 'bg-white text-blue-500', action: 'openGoogleSearch()' },
+            { id: 'settings', name: 'Configuración', icon: 'fas fa-cog', color: 'bg-gray-600', action: 'openApp("settings")' },
+            { id: 'files', name: 'Files', icon: 'fas fa-folder', color: 'bg-blue-500', action: 'openApp("files")' },
+            { id: 'maps', name: 'Maps', icon: 'fas fa-map-marker-alt', color: 'bg-green-500' },
+            { id: 'photos', name: 'Fotos', icon: 'fas fa-image', color: 'bg-yellow-500' },
+            { id: 'youtube', name: 'YouTube', icon: 'fab fa-youtube', color: 'bg-red-600' },
+            { id: 'gmail', name: 'Gmail', icon: 'fas fa-envelope', color: 'bg-red-500' },
+            { id: 'calendar', name: 'Calendario', icon: 'fas fa-calendar', color: 'bg-blue-600' },
+            { id: 'calc', name: 'Calculadora', icon: 'fas fa-calculator', color: 'bg-gray-700' },
+            { id: 'clock', name: 'Reloj', icon: 'far fa-clock', color: 'bg-blue-400' },
+            { id: 'weather', name: 'Clima', icon: 'fas fa-cloud-sun', color: 'bg-blue-300' },
+            { id: 'playstore', name: 'Play Store', icon: 'fas fa-play', color: 'bg-white text-green-500' },
+        ];
+
+        const mockFiles = [
+            { name: 'Descargas', icon: 'fa-download', count: 12, color: 'text-blue-500' },
+            { name: 'Imágenes', icon: 'fa-images', count: 154, color: 'text-yellow-500' },
+            { name: 'Documentos', icon: 'fa-file-alt', count: 8, color: 'text-blue-400' },
+            { name: 'Videos', icon: 'fa-video', count: 3, color: 'text-red-500' },
+            { name: 'Audio', icon: 'fa-music', count: 42, color: 'text-purple-500' },
+            { name: 'WhatsApp', icon: 'fa-folder', count: 1, color: 'text-green-500' },
+        ];
+
+        const wallpapers = [
+            'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?auto=format&fit=crop&q=80&w=1000'
+        ];
+        
+        let currentWallpaperIndex = 0;
+        let isDrawerOpen = false;
+        let currentOpenAppId = null;
+
+        // --- STREAMING_CHUNK:JavaScript Logic - Initialization... ---
+        
+        // 2. INICIALIZACIÓN DE LA INTERFAZ
+        function init() {
+            renderAppDrawer();
+            renderFilesList();
+            updateClock();
+            setInterval(updateClock, 10000); // Actualizar reloj cada 10s
+        }
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            
+            // Format 12h
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            const timeStr = hours + ':' + minutes;
+            
+            document.getElementById('clock').innerText = timeStr;
+            document.getElementById('widget-clock').innerText = timeStr;
+            
+            // Fecha para el widget
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            const dateStr = now.toLocaleDateString('es-ES', options);
+            document.getElementById('widget-date').innerText = dateStr;
+        }
+
+        // --- STREAMING_CHUNK:JavaScript Logic - Rendering UI... ---
+
+        function renderAppDrawer(filterText = '') {
+            const grid = document.getElementById('all-apps-grid');
+            grid.innerHTML = ''; // Limpiar
+
+            const filteredApps = apps.filter(app => 
+                app.name.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            filteredApps.forEach(app => {
+                const action = app.action ? app.action : `openGenericApp('${app.name}', '${app.icon}')`;
+                const html = `
+                    <div class="app-icon-container" onclick="${action}">
+                        <div class="app-icon ${app.color}"><i class="${app.icon}"></i></div>
+                        <div class="app-label ${isDrawerOpen ? 'text-black dark:text-white text-shadow-none' : ''}">${app.name}</div>
+                    </div>
+                `;
+                grid.innerHTML += html;
+            });
+        }
+
+        function renderFilesList() {
+            const list = document.getElementById('files-list');
+            list.innerHTML = '';
+            
+            mockFiles.forEach(folder => {
+                list.innerHTML += `
+                    <div class="flex items-center p-3 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-50 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onclick="showToast('Abriendo ${folder.name}')">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-4">
+                            <i class="fas ${folder.icon} ${folder.color} text-lg"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="text-gray-900 dark:text-white font-medium text-sm">${folder.name}</h4>
+                            <p class="text-xs text-gray-500">${folder.count} elementos</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 dark:text-gray-600 text-xs"></i>
+                    </div>
+                `;
+            });
+        }
+
+        // --- STREAMING_CHUNK:JavaScript Logic - Navigation and Actions... ---
+
+        // 3. MANEJO DE EVENTOS Y NAVEGACIÓN
+
+        function toggleAppDrawer() {
+            const drawer = document.getElementById('app-drawer');
+            isDrawerOpen = !isDrawerOpen;
+            if (isDrawerOpen) {
+                drawer.classList.add('open');
+                // Re-render to change label colors for drawer background
+                renderAppDrawer(document.querySelector('#app-drawer input').value);
+            } else {
+                drawer.classList.remove('open');
+                // Ocultar teclado en moviles si estaba buscando
+                document.querySelector('#app-drawer input').blur(); 
+            }
+        }
+
+        function filterApps(text) {
+            renderAppDrawer(text);
+        }
+
+        function openApp(appId) {
+            currentOpenAppId = appId;
+            const appElement = document.getElementById(`app-${appId}`);
+            if (appElement) {
+                appElement.classList.add('open');
+                document.getElementById('phone-container').classList.add('system-app-open');
+                if(isDrawerOpen) toggleAppDrawer(); // Cerrar cajón si está abierto
+            } else {
+                // Should not happen for predefined apps
+                showToast(`Error: App ${appId} no encontrada`);
+            }
+        }
+
+        function openGenericApp(name, iconClass) {
+            currentOpenAppId = 'generic';
+            document.getElementById('generic-app-title').innerText = name;
+            
+            // Fix icon classes for generic app view
+            const iconEl = document.getElementById('generic-app-icon');
+            iconEl.className = `${iconClass} text-6xl text-gray-300 dark:text-gray-700 mb-4`;
+            
+            document.getElementById('app-generic').classList.add('open');
+            document.getElementById('phone-container').classList.add('system-app-open');
+            if(isDrawerOpen) toggleAppDrawer();
+        }
+
+        function closeApp() {
+            if (currentOpenAppId) {
+                const appElement = document.getElementById(`app-${currentOpenAppId}`);
+                if (appElement) appElement.classList.remove('open');
+                currentOpenAppId = null;
+                document.getElementById('phone-container').classList.remove('system-app-open');
+            }
+        }
+
+        function goHome() {
+            if (currentOpenAppId) {
+                closeApp();
+            }
+            if (isDrawerOpen) {
+                toggleAppDrawer();
+            }
+        }
+
+        function handleBack() {
+            if (currentOpenAppId) {
+                closeApp();
+            } else if (isDrawerOpen) {
+                toggleAppDrawer();
+            } else {
+                // Efecto de feedback visual si ya está en inicio
+                const container = document.getElementById('phone-container');
+                container.style.transform = 'scale(0.99)';
+                setTimeout(() => container.style.transform = 'none', 100);
+            }
+        }
+
+        // --- STREAMING_CHUNK:JavaScript Logic - System Features... ---
+
+        // 4. FUNCIONALIDADES ESPECÍFICAS
+
+        function openGoogleSearch() {
+            // Simula abrir la app de Google, pero aquí en web, nos lleva directo a Google
+            // target="_blank" no funciona bien dentro de iFrames a veces, así que abrimos en la misma o nueva pestaña según el entorno
+            window.open('https://www.google.com', '_blank');
+        }
+
+        function toggleTheme() {
+            const body = document.getElementById('body-theme');
+            body.classList.toggle('dark');
+            // Aquí en un sistema real guardaríamos la preferencia en persistencia (SharedPreferences en Android, localStorage aquí)
+        }
+
+        function changeWallpaper() {
+            currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpapers.length;
+            const container = document.getElementById('phone-container');
+            container.style.backgroundImage = `url('${wallpapers[currentWallpaperIndex]}')`;
+            showToast('Fondo de pantalla actualizado');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        // Iniciar
+        window.onload = init;
+
+    </script>
+</body>
+</html>
